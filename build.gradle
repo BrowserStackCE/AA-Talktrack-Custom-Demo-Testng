@@ -1,0 +1,151 @@
+apply plugin: 'java'
+apply plugin: 'io.qameta.allure'
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "io.qameta.allure:allure-gradle:2.8.1"
+    }
+}
+
+dependencies {
+    testImplementation 'io.appium:java-client:7.0.0'
+    compileOnly 'com.browserstack:browserstack-java-sdk:latest.release'
+    testImplementation 'com.browserstack:browserstack-local-java:1.0.6'
+    testImplementation 'org.testng:testng:7.1.0'
+    testImplementation 'io.qameta.allure:allure-testng:2.13.8'
+    testImplementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    testImplementation 'org.assertj:assertj-core:3.18.0'
+    testImplementation 'com.opencsv:opencsv:5.4'
+    testImplementation 'org.slf4j:slf4j-api:1.7.30'
+    testImplementation 'org.slf4j:slf4j-simple:1.7.30'
+}
+
+configurations {
+   testCompile
+}
+
+group = 'com.browserstack'
+version = '1.0-SNAPSHOT'
+description = 'browserstack-examples-testng'
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+def browserstackSDKArtifact = configurations.compileClasspath.resolvedConfiguration.resolvedArtifacts.find { it.name == 'browserstack-java-sdk' }
+
+allure {
+    autoconfigure = true
+    version = '2.8.1'
+    resultsDir = file('../allure-results')
+}
+
+tasks.register('on-prem', Test) {
+    useTestNG()
+    if (project.hasProperty('test-name')) {
+        include '**/' + project.property('test-name') + '.class'
+    } else {
+        include '**/OrderTest.class'
+    }
+    systemProperty "on-prem", "true"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('on-prem-suite', Test) {
+    useTestNG()
+    systemProperty "on-prem", "true"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-single', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    if (project.hasProperty('test-name')) {
+        include '**/' + project.property('test-name') + '.class'
+    } else {
+        include '**/OrderTest.class'
+    }
+    systemProperty "browserstack-local", "false"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-local', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    if (project.hasProperty('test-name')) {
+        include '**/' + project.property('test-name') + '.class'
+    } else {
+        include '**/OrderTest.class'
+    }
+    systemProperty "browserstack-local", "true"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-local-parallel', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        suites 'src/test/resources/conf/runners/testng.xml'
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    systemProperty "browserstack-local", "true"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-local-parallel-devices', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        suites 'src/test/resources/conf/runners/testng.xml'
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-parallel', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        suites 'src/test/resources/conf/runners/testng.xml'
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    systemProperty "browserstack-local", "false"
+    systemProperty "testType", "parallel"
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+tasks.register('bstack-parallel-devices', Test) {
+    useTestNG() {
+        dependsOn clean
+        useDefaultListeners = true
+        suites 'src/test/resources/conf/runners/testng.xml'
+        jvmArgs "-javaagent:${browserstackSDKArtifact.file}"
+    }
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
