@@ -1,0 +1,50 @@
+# =============================
+# Set BrowserStack Credentials
+# =============================
+# Add your BrowserStack userName and accessKey here or set BROWSERSTACK_USERNAME and
+# BROWSERSTACK_ACCESS_KEY as env variables
+userName: BROWSERSTACK_USERNAME
+accessKey: BROWSERSTACK_ACCESS_KEY
+
+# ======================
+# BrowserStack Reporting
+# ======================
+projectName: BrowserStack Self-Heal Sample Project
+buildName: browserstack self-heal sample build native app
+buildIdentifier: '#${BUILD_NUMBER}'
+framework: testng
+
+source: testng:appium-sample-sdk:v1.1
+
+# =============================================
+# App Selection — managed by run-selfheal-demo.sh
+# =============================================
+app: ./apps/BaseApp.apk          # BaseApp — original selectors
+# app: ./apps/SelfHealApp.apk   # SelfHealApp — changed selectors
+
+# =======================================
+# Platforms
+# =======================================
+platforms:
+  - deviceName: Samsung Galaxy S22 Ultra
+    osVersion: 12.0
+    platformName: android
+
+parallelsPerPlatform: 6
+
+browserstackLocal: false
+
+# ===================
+# Debugging features
+# ===================
+debug: false
+networkLogs: false
+consoleLogs: errors
+
+# =============================================
+# Self-Heal Toggle — managed by run-selfheal-demo.sh
+# =============================================
+# DEMO PART 1: selfHeal: false → SelfHealApp tests FAIL (no healing)
+# DEMO PART 2: selfHeal: true  → SelfHealApp tests PASS (AI heals broken selectors)
+#
+selfHeal: false  # Managed automatically by run-selfheal-demo.sh
