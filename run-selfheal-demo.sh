@@ -24,8 +24,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BSTACK_YML="$SCRIPT_DIR/src/test/resources/conf/browserstack-selfheal.yml"
-BASE_APP="./apps/BaseApp.apk"
-SELFHEAL_APP="./apps/SelfHealApp.apk"
+BASE_APP_PATH="$SCRIPT_DIR/apps/BaseApp.apk"
+SELFHEAL_APP_PATH="$SCRIPT_DIR/apps/SelfHealApp.apk"
 
 # Export BROWSERSTACK_CONFIG_FILE so Maven picks it up via ${env.BROWSERSTACK_CONFIG_FILE}
 export BROWSERSTACK_CONFIG_FILE="$BSTACK_YML"
@@ -48,27 +48,46 @@ section() {
 
 log "Using BrowserStack config: $BROWSERSTACK_CONFIG_FILE"
 
-# Helper: update app and selfHeal in browserstack-selfheal.yml
+# =============================================================================
+# Upload APKs to BrowserStack and get bs:// URLs
+# =============================================================================
+section "Uploading apps to BrowserStack"
+
+log "Uploading BaseApp.apk..."
+BASE_APP_RESPONSE=$(curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+    -F "file=@$BASE_APP_PATH")
+BASE_APP_URL=$(echo "$BASE_APP_RESPONSE" | grep -oP '(?<="app_url":")[^"]*')
+if [ -z "$BASE_APP_URL" ]; then
+    fail "Failed to upload BaseApp.apk. Response: $BASE_APP_RESPONSE"
+    exit 1
+fi
+log "BaseApp uploaded: $BASE_APP_URL"
+
+log "Uploading SelfHealApp.apk..."
+SELFHEAL_APP_RESPONSE=$(curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+    -F "file=@$SELFHEAL_APP_PATH")
+SELFHEAL_APP_URL=$(echo "$SELFHEAL_APP_RESPONSE" | grep -oP '(?<="app_url":")[^"]*')
+if [ -z "$SELFHEAL_APP_URL" ]; then
+    fail "Failed to upload SelfHealApp.apk. Response: $SELFHEAL_APP_RESPONSE"
+    exit 1
+fi
+log "SelfHealApp uploaded: $SELFHEAL_APP_URL"
+
+# Helper: update app (bs:// URL) and selfHeal in browserstack-selfheal.yml
 set_config() {
-    local app="$1"
+    local app_url="$1"
     local self_heal="$2"
 
-    # Deactivate both app lines first
-    sed -i.bak "s|^app:.*BaseApp.*|# app: $BASE_APP          # BaseApp — original selectors|g" "$BSTACK_YML"
-    sed -i.bak "s|^app:.*SelfHealApp.*|# app: $SELFHEAL_APP   # SelfHealApp — changed selectors|g" "$BSTACK_YML"
-
-    # Activate the selected app
-    if [ "$app" = "base" ]; then
-        sed -i.bak "s|^# app: $BASE_APP.*|app: $BASE_APP          # BaseApp — original selectors|g" "$BSTACK_YML"
-    else
-        sed -i.bak "s|^# app: $SELFHEAL_APP.*|app: $SELFHEAL_APP   # SelfHealApp — changed selectors|g" "$BSTACK_YML"
-    fi
+    # Replace the active app line with the bs:// URL
+    sed -i.bak "s|^app:.*|app: $app_url|g" "$BSTACK_YML"
 
     # Update selfHeal value
     sed -i.bak "s|^selfHeal:.*|selfHeal: $self_heal  # Managed automatically by run-selfheal-demo.sh|g" "$BSTACK_YML"
     rm -f "$BSTACK_YML.bak"
 
-    log "Config updated → app=$app, selfHeal=$self_heal"
+    log "Config updated → app=$app_url, selfHeal=$self_heal"
 }
 
 cd "$SCRIPT_DIR"
@@ -82,7 +101,7 @@ section "DEMO PART 1 — Without Self-Healing (selfHeal: false)"
 
 # Step 1: BaseApp + selfHeal:false → PASS
 section "Step 1: BaseApp + selfHeal:false (Expected: PASS)"
-set_config "base" "false"
+set_config "$BASE_APP_URL" "false"
 set +e
 mvn test -P sampleBaseAppTest -q 2>&1 | tee /tmp/selfheal_step1.log
 STEP1_EXIT=$?
@@ -97,7 +116,7 @@ fi
 
 # Step 2: SelfHealApp + selfHeal:false → FAIL (expected)
 section "Step 2: SelfHealApp + selfHeal:false (Expected: FAIL — broken selectors)"
-set_config "selfheal" "false"
+set_config "$SELFHEAL_APP_URL" "false"
 set +e
 mvn test -P sampleSelfHealAppTest -q 2>&1 | tee /tmp/selfheal_step2.log
 STEP2_EXIT=$?
@@ -115,7 +134,7 @@ section "DEMO PART 2 — With Self-Healing (selfHeal: true)"
 
 # Step 3: BaseApp + selfHeal:true → PASS (Agent learns)
 section "Step 3: BaseApp + selfHeal:true (Expected: PASS — Agent captures context)"
-set_config "base" "true"
+set_config "$BASE_APP_URL" "true"
 set +e
 mvn test -P sampleBaseAppTest -q 2>&1 | tee /tmp/selfheal_step3.log
 STEP3_EXIT=$?
@@ -130,7 +149,7 @@ fi
 
 # Step 4: SelfHealApp + selfHeal:true → PASS (AI heals)
 section "Step 4: SelfHealApp + selfHeal:true (Expected: PASS — Self-Heal AI heals selectors)"
-set_config "selfheal" "true"
+set_config "$SELFHEAL_APP_URL" "true"
 set +e
 mvn test -P sampleSelfHealAppTest -q 2>&1 | tee /tmp/selfheal_step4.log
 STEP4_EXIT=$?
@@ -146,7 +165,7 @@ fi
 # =============================================================================
 section "Restoring browserstack-selfheal.yml to default state"
 # =============================================================================
-set_config "base" "false"
+set_config "$BASE_APP_URL" "false"
 log "Restored: app=BaseApp, selfHeal=false"
 
 # =============================================================================
