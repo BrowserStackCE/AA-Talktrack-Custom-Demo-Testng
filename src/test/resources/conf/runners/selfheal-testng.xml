@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="SelfHeal">
+    <test name="SelfHealAppTest">
+        <classes>
+            <class name="com.browserstack.test.suites.selfheal.SelfHealAppTest"/>
+        </classes>
+    </test>
+</suite>
