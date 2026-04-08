@@ -1,0 +1,55 @@
+# =============================
+# Set BrowserStack Credentials
+# =============================
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+# ======================
+# Organizing your tests
+# ======================
+buildName: GeoLocation-Test-Demo
+projectName: GeoLocation-Test-Demo
+buildIdentifier: '#${BUILD_NUMBER}'
+
+testObservability: true
+framework: testng
+
+app: ./apps/browserstack-demoapp.apk
+
+# =======================================
+# Platforms (Browsers / Devices to test)
+# =======================================
+platforms: 
+  - deviceName: Google Pixel 7
+    osVersion: 13.0
+    platformName: android
+
+
+# =======================
+# Parallels per Platform
+# =======================
+parallelsPerPlatform: 1
+
+# ==========================================
+# BrowserStack Local
+# ==========================================
+browserstackLocal: false
+geoLocation: IN
+
+# ===================
+# Debugging features
+# ===================
+debug: true
+networkLogs: true
+consoleLogs: verbose
+
+# Test observability and visual testing
+percy: true
+percyCaptureMode: auto
+
+accessibility: true
+accessibilityOptions:
+  wcagVersion: wcag21aa
+  includeIssueType:
+    bestPractice: false
+  scannerProcessingTimeout: 10

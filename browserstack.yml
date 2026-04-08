@@ -3,8 +3,8 @@
 # =============================
 # Add your BrowserStack userName and accessKey here or set BROWSERSTACK_USERNAME and
 # BROWSERSTACK_ACCESS_KEY as env variables
-userName: BROWSERSTACK_USERNAME
-accessKey: BROWSERSTACK_ACCESS_KEY
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
 
 # ======================
 # BrowserStack Reporting
@@ -27,8 +27,9 @@ source: testng:appium-sample-sdk:v1.1
 #   Step 1: Use BaseApp → mvn test -P sampleBaseAppTest  → Tests PASS (Agent learns)
 #   Step 2: Use SelfHealApp → mvn test -P sampleSelfHealAppTest → Tests PASS (healed!)
 #
-app: ./apps/BaseApp.apk          # BaseApp — original selectors (tests PASS)
+# app: ./apps/BaseApp.apk          # BaseApp — original selectors (tests PASS)
 # app: ./apps/SelfHealApp.apk   # SelfHealApp — changed selectors (tests FAIL without self-heal)
+app: ./apps/browserstack-demoapp.apk
 
 # =======================================
 # Platforms
