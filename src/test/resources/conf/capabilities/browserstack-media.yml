@@ -1,0 +1,31 @@
+userName: kriyademo_ozbSWp
+accessKey: G6pRTrBB3popqRNCdkt7
+
+app: apps/regression.apk
+
+framework: testng
+
+platforms:
+  - platformName: android
+    deviceName: Samsung Galaxy S23
+    platformVersion: "13.0"
+
+parallelsPerPlatform: 1
+    
+autoGrantPermissions: true
+
+interactiveDebugging: true
+
+buildName: Sample Mobile App Testing - Android
+projectName: L1Docket
+
+# Appium Options
+idleTimeout: 90
+autoAcceptAlerts: true
+
+enableBiometric: true
+enableCameraImageInjection: true
+enableCameraPreview: true
+# Debugging
+debug: true
+networkLogs: true

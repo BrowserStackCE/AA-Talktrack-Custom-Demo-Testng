@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="BiometricAndImageInjection">
+    <test name="Biometric Authentication Test">
+        <classes>
+            <class name="com.browserstack.advance_use_cases.BiometricAuthTest"/>
+        </classes>
+    </test>
+    <test name="Camera Image Injection Test">
+        <classes>
+            <class name="com.browserstack.advance_use_cases.ImageInjection"/>
+        </classes>
+    </test>
+</suite>
